@@ -1,27 +1,24 @@
-
-[tool.poetry]
+[project]
 name = "geoprob_pipe"
 version = "2.2.12"
 description = "Execute probabilistic piping calculations using the Deltares probabilic library."
-keywords = [
-  "levee",
-  "dike",
-  "piping",
-  "probabilistic",
-  "water-safety",
-  "hydrology",
-]
 authors = [
-    "Chris Pitzalis <C.Pitzalis@wsrl.nl>",
-    "Vincent Jilesen <V.Jilesen@wshd.nl>",
-    "Sander Kapinga <S.Kapinga@wsrl.nl>",
-    "Laura van der Doef <L.vanderDoef@wshd.nl>",
+    { name = "Chris Pitzalis", email = "C.Pitzalis@wsrl.nl" },
+    { name = "Vincent Jilesen", email = "V.Jilesen@wshd.nl" },
+    { name = "Sander Kapinga", email = "S.Kapinga@wsrl.nl" },
+    { name = "Laura van der Doef", email = "L.vanderDoef@wshd.nl" },
 ]
-license = "GPL-3.0-or-later"
+requires-python = ">=3.12,<3.13"
 readme = "other/PyPI_README.md"
-homepage = "https://kkpdata.github.io/GeoProb-Pipe/"
-repository = "https://github.com/kkpdata/GeoProb-Pipe"
-documentation = "https://kkpdata.github.io/GeoProb-Pipe/"
+license = "GPL-3.0-or-later"
+keywords = [
+    "levee",
+    "dike",
+    "piping",
+    "probabilistic",
+    "water-safety",
+    "hydrology",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -31,24 +28,26 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python :: 3.12",
 ]
+dependencies = [
+    "pandas>=2.0,<3.0",
+    "pydra-core==0.0.10",
+    "probabilistic-library==26.1.1",
+    "scipy>=1.16.1,<2",
+    "geopandas>=1.1.1,<2",
+    "plotly>=6.2.0,<7",
+    "openpyxl>=3.1.5,<4",
+    "kaleido>=1.0.0,<2",
+    "colorlog>=6.9.0,<7",
+    "typer>=0.17.3,<0.18",
+    "inquirerpy>=0.3.4,<0.4",
+    "rasterio>=1.4.3,<2",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.12,<3.13"  # TODO: Unit test and add 3.13 en 3.14
-pandas = ">=2.0,<3.0"  # pydra-core 0.0.10 and earlier is not update to the latest version of pandas.
-pydra-core = "0.0.10"  # TODO: There is a newer version available. Test with that.
-probabilistic-library = "26.1.1"
-# The following is not yet restricted, but should be TODO
-scipy = "^1.16.1"
-geopandas = "^1.1.1"
-plotly = "^6.2.0"
-openpyxl = "^3.1.5"
-kaleido = "^1.0.0"
-colorlog = "^6.9.0"
-typer = "^0.17.3"
-inquirerpy = "^0.3.4"
-rasterio = "^1.4.3"
+[project.urls]
+Homepage = "https://kkpdata.github.io/GeoProb-Pipe/"
+Repository = "https://github.com/kkpdata/GeoProb-Pipe"
+Documentation = "https://kkpdata.github.io/GeoProb-Pipe/"
 
-
-[tool.poetry.scripts]
+[project.scripts]
 geoprob_pipe = "geoprob_pipe.cmd_app.cmd:app"
 geoprob-pipe = "geoprob_pipe.cmd_app.cmd:app"

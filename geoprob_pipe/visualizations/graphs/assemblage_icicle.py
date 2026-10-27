@@ -191,7 +191,6 @@ class IciclePlot:
         df_rest = df.loc[~mask_combined]
         df_traject = df_rest.loc[df_rest["id"].eq("1")]
         df_rest = df_rest.loc[~df_rest["id"].eq("1")]
-        print(df_traject)
 
         df = pd.concat([df_traject, df_vakken, df_utp, df_scen, df_rest],
                        ignore_index=True)
