@@ -21,6 +21,7 @@ from geoprob_pipe.visualizations.maps.utils import add_line
 if TYPE_CHECKING:
     from geoprob_pipe import GeoProbPipe
 
+
 # TODO: Fix voor niet-Moria modellen
 # TODO: fix voor niet alle vakken runnen
 class ForelandMap:
@@ -52,6 +53,7 @@ class ForelandMap:
             buitenteen_geom = self.gdf_buitenteen.union_all()
             utp_id = row.uittredepunt_id
 
+            # TODO fix try-except met len()
             try:
                 seepage_length: float = self.physical_values.loc[
                     (self.physical_values["uittredepunt_id"] == utp_id)
@@ -111,6 +113,20 @@ class ForelandMap:
         }
         # TODO: Zoek deze op uit de geopackage
         for scenario in ["Zand Diep", "Zand Midden", "Zand Ondiep"]:
+            self.fig.add_trace(
+                go.Scattermap(
+                    mode="lines",
+                    lon=[None],
+                    lat=[None],
+                    name=scenario,
+                    line={
+                        "width": 3,
+                        "color": scenario_color[scenario],
+                    },
+                    legendgroup=scenario,
+                    visible="legendonly",
+                )
+            )
             gdf_lines = self._create_lines(scenario)
             gdf_lines = gdf_lines.to_crs("EPSG:4326")
             for _, row in gdf_lines.iterrows():
@@ -129,6 +145,8 @@ class ForelandMap:
                         },
                         hoverinfo="skip",
                         showlegend=False,
+                        legendgroup=scenario,
+                        visible="legendonly",
                     )
                 )
 
