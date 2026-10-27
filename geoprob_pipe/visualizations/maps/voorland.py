@@ -1,9 +1,3 @@
-"""
-TODO: Bepaal waar de kwelweg de verschillende lijnen snijdt
-TODO: Teken deze lijnen in een kaart
-TODO: Teken de fictieve voorland lengte / lambda in de kaart
-"""
-
 from __future__ import annotations
 
 import os
@@ -13,7 +7,9 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from shapely import Point
 from shapely.geometry import LineString
+from shapely.geometry.base import BaseGeometry
 from shapely.ops import nearest_points
 
 from geoprob_pipe.visualizations.maps.utils import add_line
@@ -54,15 +50,16 @@ class ForelandMap:
             utp_id = row.uittredepunt_id
 
             # TODO fix try-except met len()
-            try:
-                seepage_length: float = self.physical_values.loc[
-                    (self.physical_values["uittredepunt_id"] == utp_id)
-                    & (self.physical_values["variable"] == "L_kwelweg")
-                    & (self.physical_values["ondergrondscenario_id"] == scenario),
-                    "physical_value",
-                ].item()
-            except Exception:
+
+            seepage_length: pd.Series = self.physical_values.loc[
+                (self.physical_values["uittredepunt_id"] == utp_id)
+                & (self.physical_values["variable"] == "L_kwelweg")
+                & (self.physical_values["ondergrondscenario_id"] == scenario),
+                "physical_value",
+            ]
+            if len(seepage_length) != 1:
                 continue
+            seepage_length = seepage_length.item()
 
             fictitious_foreland_length = seepage_length - row.afstand_buitenteenlijn
 
@@ -127,7 +124,7 @@ class ForelandMap:
                     visible="legendonly",
                 )
             )
-            gdf_lines = self._create_lines(scenario)
+            gdf_lines: gpd.GeoDataFrame = self._create_lines(scenario)
             gdf_lines = gdf_lines.to_crs("EPSG:4326")
             for _, row in gdf_lines.iterrows():
                 line = row.geometry
@@ -149,13 +146,17 @@ class ForelandMap:
                         visible="legendonly",
                     )
                 )
+        union: BaseGeometry = gdf_lines.union_all()
+        point: Point = union.representative_point()
 
+        center_lon: float = point.x
+        center_lat: float = point.y
         self.fig.update_layout(
             map={
                 "style": "white-bg",
                 "center": {
-                    "lon": gdf_lines.geometry.centroid.x.mean(),
-                    "lat": gdf_lines.geometry.centroid.y.mean(),
+                    "lon": center_lon,
+                    "lat": center_lat,
                 },
                 "zoom": 13,
                 "layers": [
