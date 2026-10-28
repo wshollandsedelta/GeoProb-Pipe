@@ -30,27 +30,30 @@ class ForelandMap:
         self.geoprob_pipe: GeoProbPipe = geoprob_pipe
         self.export: bool = export
         self.output_dir: str = geoprob_pipe.visualizations.maps.export_dir
+        
         self.gdf_buitenteen: gpd.GeoDataFrame = gpd.read_file(
             geoprob_pipe.input_data.app_settings.geopackage_filepath,
             layer="buitenteenlijn",
         ).to_crs("EPSG:28992")
+        
         self.gdf_exit_points: gpd.GeoDataFrame = gpd.read_file(
             geoprob_pipe.input_data.app_settings.geopackage_filepath,
             layer="uittredepunten",
         ).to_crs("EPSG:28992")
+        
         con = sqlite3.connect(geoprob_pipe.input_data.app_settings.geopackage_filepath)
         self.df_scenario: pd.DataFrame = pd.read_sql(
             "SELECT * FROM scenario_invoer",
             con,
         )
+        
         self.physical_values: pd.DataFrame = (
             geoprob_pipe.results.df_alphas_influence_factors_and_physical_values()
         )
 
         # Selecteer alleen utp die gerunt zijn.
-        utps: list[int] = [
-            utp for utp in self.physical_values["uittredepunt_id"].unique()
-        ]
+        utps: list[int] = self.physical_values["uittredepunt_id"].unique().tolist()
+        
         self.gdf_exit_points = self.gdf_exit_points[
             self.gdf_exit_points["uittredepunt_id"].isin(utps)
         ]
@@ -63,26 +66,28 @@ class ForelandMap:
     def _create_lines(self, scenario: str) -> gpd.GeoDataFrame:
         """Method voor het bepalen van de lijn per uittredepunt.
 
-        :param scenario: _description_
-        :return: _description_
+        :param scenario: Naam van het scenario dat word opgehaald
+        :return: GeoDataFrame met alle lijen die bij dit scenario horen.
         """
-        lines = []
+        lines: list[LineString] = []
         for _, row in self.gdf_exit_points.iterrows():
             exit_point: Point = row.geometry
             buitenteen_geom: BaseGeometry = self.gdf_buitenteen.union_all()
             utp_id: int = row.uittredepunt_id
 
+            # Bepaal de fictieve voorlandlengte uit de kwelweglengte
             seepage_length: pd.Series = self.physical_values.loc[
                 (self.physical_values["uittredepunt_id"] == utp_id)
                 & (self.physical_values["variable"] == "L_kwelweg")
                 & (self.physical_values["ondergrondscenario_id"] == scenario),
                 "physical_value",
             ]
+            
             if len(seepage_length) != 1:
                 continue
             seepage_length = seepage_length.item()
 
-            fictitious_foreland_length = seepage_length - row.afstand_buitenteenlijn
+            fictitious_foreland_length: float = seepage_length - row.afstand_buitenteenlijn
 
             _, toe_point = nearest_points(
                 exit_point,
@@ -94,10 +99,6 @@ class ForelandMap:
             dy: float = toe_point.y - exit_point.y
 
             norm: float = np.hypot(dx, dy)
-
-            if norm == 0:
-                lines.append(None)
-                continue
 
             ux: float = dx / norm
             uy: float = dy / norm
@@ -117,6 +118,7 @@ class ForelandMap:
             )
 
             lines.append(line)
+        
         return gpd.GeoDataFrame(
             geometry=lines,
             crs=self.gdf_exit_points.crs,
@@ -135,7 +137,11 @@ class ForelandMap:
         }
 
         self.fig = go.Figure()
+        
+        # Per scenario met aparte legenda naam de lijnen intekenen.
         for scenario in scenario_names:
+            
+            # Lege trace voor legenda
             self.fig.add_trace(
                 go.Scattermap(
                     mode="lines",
@@ -150,8 +156,11 @@ class ForelandMap:
                     visible="legendonly",
                 )
             )
+            
             gdf_lines: gpd.GeoDataFrame = self._create_lines(scenario)
             gdf_lines = gdf_lines.to_crs("EPSG:4326")
+            
+            # Lijnen op de kaart tekenen
             for _, row in gdf_lines.iterrows():
                 line = row.geometry
 
@@ -172,11 +181,14 @@ class ForelandMap:
                         visible="legendonly",
                     )
                 )
+                
         union: BaseGeometry = gdf_lines.union_all()  # pyright: ignore[reportPossiblyUnboundVariable]
         point: Point = union.representative_point()
 
         center_lon: float = point.x
         center_lat: float = point.y
+        
+        # Achtergrondkaart
         self.fig.update_layout(
             map={
                 "style": "white-bg",
