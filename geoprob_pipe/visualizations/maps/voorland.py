@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import os
+import sqlite3
 from typing import TYPE_CHECKING
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
 from shapely import Point
 from shapely.geometry import LineString
@@ -18,11 +20,14 @@ if TYPE_CHECKING:
     from geoprob_pipe import GeoProbPipe
 
 
-# TODO: Fix voor niet-Moria modellen
-# TODO: fix voor niet alle vakken runnen
 class ForelandMap:
     def __init__(self, geoprob_pipe: GeoProbPipe, export: bool = False) -> None:
-        self.geoprob_pipe = geoprob_pipe
+        """Class voor het maken van de voorlandlengte kaart.
+
+        :param geoprob_pipe: Hoofdobject
+        :param export: bool voor de export van de html, defaults to False
+        """
+        self.geoprob_pipe: GeoProbPipe = geoprob_pipe
         self.export: bool = export
         self.output_dir: str = geoprob_pipe.visualizations.maps.export_dir
         self.gdf_buitenteen: gpd.GeoDataFrame = gpd.read_file(
@@ -33,9 +38,22 @@ class ForelandMap:
             geoprob_pipe.input_data.app_settings.geopackage_filepath,
             layer="uittredepunten",
         ).to_crs("EPSG:28992")
+        con = sqlite3.connect(geoprob_pipe.input_data.app_settings.geopackage_filepath)
+        self.df_scenario: pd.DataFrame = pd.read_sql(
+            "SELECT * FROM scenario_invoer",
+            con,
+        )
         self.physical_values: pd.DataFrame = (
             geoprob_pipe.results.df_alphas_influence_factors_and_physical_values()
         )
+
+        # Selecteer alleen utp die gerunt zijn.
+        utps: list[int] = [
+            utp for utp in self.physical_values["uittredepunt_id"].unique()
+        ]
+        self.gdf_exit_points = self.gdf_exit_points[
+            self.gdf_exit_points["uittredepunt_id"].isin(utps)
+        ]
 
         # Logic
         self._create_figure()
@@ -43,13 +61,16 @@ class ForelandMap:
         self._optionally_export()
 
     def _create_lines(self, scenario: str) -> gpd.GeoDataFrame:
+        """Method voor het bepalen van de lijn per uittredepunt.
+
+        :param scenario: _description_
+        :return: _description_
+        """
         lines = []
         for _, row in self.gdf_exit_points.iterrows():
-            exit_point = row.geometry
-            buitenteen_geom = self.gdf_buitenteen.union_all()
-            utp_id = row.uittredepunt_id
-
-            # TODO fix try-except met len()
+            exit_point: Point = row.geometry
+            buitenteen_geom: BaseGeometry = self.gdf_buitenteen.union_all()
+            utp_id: int = row.uittredepunt_id
 
             seepage_length: pd.Series = self.physical_values.loc[
                 (self.physical_values["uittredepunt_id"] == utp_id)
@@ -69,20 +90,20 @@ class ForelandMap:
             )
 
             # richting uittredepunt -> buitenteen
-            dx = toe_point.x - exit_point.x
-            dy = toe_point.y - exit_point.y
+            dx: float = toe_point.x - exit_point.x
+            dy: float = toe_point.y - exit_point.y
 
-            norm = np.hypot(dx, dy)
+            norm: float = np.hypot(dx, dy)
 
             if norm == 0:
                 lines.append(None)
                 continue
 
-            ux = dx / norm
-            uy = dy / norm
+            ux: float = dx / norm
+            uy: float = dy / norm
 
             # verlengd eindpunt
-            extended_end = (
+            extended_end: tuple[float, float] = (
                 toe_point.x + ux * fictitious_foreland_length,
                 toe_point.y + uy * fictitious_foreland_length,
             )
@@ -102,14 +123,19 @@ class ForelandMap:
         )
 
     def _create_figure(self) -> None:
-        self.fig = go.Figure()
+        """Method voor het opzetten van het plotly figuur met alle lijnen."""
+        # Verzamel de scenario namen
+        scenario_names: list[str] = self.df_scenario["naam"].dropna().unique().tolist()
+
+        colors: list[str] = px.colors.qualitative.Plotly
+
         scenario_color: dict[str, str] = {
-            "Zand Diep": "red",
-            "Zand Midden": "Orange",
-            "Zand Ondiep": "yellow",
+            scenario: colors[i % len(colors)]
+            for i, scenario in enumerate(scenario_names)
         }
-        # TODO: Zoek deze op uit de geopackage
-        for scenario in ["Zand Diep", "Zand Midden", "Zand Ondiep"]:
+
+        self.fig = go.Figure()
+        for scenario in scenario_names:
             self.fig.add_trace(
                 go.Scattermap(
                     mode="lines",
@@ -146,7 +172,7 @@ class ForelandMap:
                         visible="legendonly",
                     )
                 )
-        union: BaseGeometry = gdf_lines.union_all()
+        union: BaseGeometry = gdf_lines.union_all()  # pyright: ignore[reportPossiblyUnboundVariable]
         point: Point = union.representative_point()
 
         center_lon: float = point.x
@@ -176,6 +202,7 @@ class ForelandMap:
         )
 
     def _add_lines(self) -> None:
+        """Voeg de traject, intrede en teenlijnen toe aan de kaart."""
         self.fig = add_line(self.geoprob_pipe, self.fig, "dijktraject", "black")
         self.fig = add_line(self.geoprob_pipe, self.fig, "intredelijn", "blue")
         self.fig = add_line(self.geoprob_pipe, self.fig, "binnenteenlijn", "purple")
