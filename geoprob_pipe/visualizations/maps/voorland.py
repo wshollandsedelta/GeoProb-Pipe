@@ -67,7 +67,7 @@ class ForelandMap:
         """Method voor het bepalen van de lijn per uittredepunt.
 
         :param scenario: Naam van het scenario dat word opgehaald
-        :return: GeoDataFrame met alle lijen die bij dit scenario horen.
+        :return: GeoDataFrame met alle lijnen die bij dit scenario horen.
         """
         lines: list[LineString] = []
         for _, row in self.gdf_exit_points.iterrows():
