@@ -1,94 +1,28 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Dict, List, Tuple
-import plotly.graph_objects as go
+
 import os
+from typing import TYPE_CHECKING
+
+import plotly.graph_objects as go
+from geopandas import GeoDataFrame
 from pandas import DataFrame
-from geopandas import GeoDataFrame, read_file
-from shapely.geometry import LineString, MultiLineString, GeometryCollection
+
+from geoprob_pipe.visualizations.maps.utils import add_line, calculate_zoom
 
 if TYPE_CHECKING:
     from geoprob_pipe import GeoProbPipe
 
 
-def _calculate_zoom(lat_range, lon_range):
-    max_range = max(lat_range, lon_range)
-    if max_range < 0.01:
-        return 15
-    elif max_range < 0.05:
-        return 13
-    elif max_range < 0.1:
-        return 12
-    elif max_range < 0.5:
-        return 10
-    elif max_range < 1.0:
-        return 9
-    else:
-        return 8
-
-
-def _add_line(geoprob_pipe: GeoProbPipe, fig: go.Figure, layer: str, color: str):
-    """Helperfunctie om de lijnen uit de geopackage te vinden en toe te voegen aan de map. Layer is de naam van de
-    laag in de geopackage waar de lijn is opgeslagen. Color is de kleur van deze lijn in de map."""
-
-    gdf_traject = read_file(
-        geoprob_pipe.input_data.app_settings.geopackage_filepath, layer=layer
-    )
-    gdf_traject = gdf_traject.to_crs("EPSG:4326")
-
-    def plot_linestring(ls, display):
-        xs, ys = ls.xy
-        xs = list(xs)
-        ys = list(ys)
-        fig.add_trace(
-            go.Scattermap(
-                lon=xs,
-                lat=ys,
-                mode="lines",
-                line=dict(color=color, width=1),
-                hoverinfo="none",
-                name=layer,
-                legendgroup=layer,
-                showlegend=display,
-            )
-        )
-
-    show = True
-    for geom in gdf_traject.geometry:
-        if isinstance(geom, LineString):
-            plot_linestring(geom, show)
-            show = False
-
-        elif isinstance(geom, MultiLineString):
-            for line in geom.geoms:
-                plot_linestring(line, show)
-                show = False
-
-        elif isinstance(geom, GeometryCollection):
-            for g in geom.geoms:
-                if isinstance(g, LineString):
-                    plot_linestring(g, show)
-                    show = False
-                elif isinstance(g, MultiLineString):
-                    for line in g.geoms:
-                        plot_linestring(line, show)
-                        show = False
-
-        else:
-            print("Skipping unsupported geometry:", geom.geom_type)
-
-    return fig
-
-
 def _generate_colorscale(
-    cg: Dict[str, List], labels: List[str]
-) -> List[Tuple[float, str]]:
+    cg: dict[str, list], labels: list[str]
+) -> list[tuple[float, str]]:
     # cg > category label > [van beta, tot beta]
     upper_boundary_beta_graph = cg[labels[0]][1]
     lower_boundary_beta_graph = cg[labels[-1]][0]
     beta_range_graph = upper_boundary_beta_graph - lower_boundary_beta_graph
 
     # Calculate intervals (starts with boundary value 1.0, and then decreases)
-    colorscale_intervals: Dict = {}
+    colorscale_intervals: dict = {}
     for index, label in enumerate(labels):
         cg_beta_bovengrens = cg[label][1]
         colorscale_intervals[index] = (
@@ -156,10 +90,10 @@ class BetaMap:
         self.gdf_uittredepunten = self.gdf_uittredepunten[mask]
 
         # Setup of beta category limits
-        self.categorie_grenzen: Dict[str, List] = (
+        self.categorie_grenzen: dict[str, list] = (
             self.geoprob_pipe.input_data.traject_normering.riskeer_categorie_grenzen
         )
-        self.labels_categorie_grenzen: List[str] = list(self.categorie_grenzen.keys())
+        self.labels_categorie_grenzen: list[str] = list(self.categorie_grenzen.keys())
 
     def _setup_gdf(self):
         self.hoverdata = ["uittredepunt_id", "converged", "beta"]
@@ -191,7 +125,7 @@ class BetaMap:
 
         self.lat_range = self.max_lat - self.min_lat
         self.lon_range = self.max_lon - self.min_lon
-        self.zoom = _calculate_zoom(self.lat_range, self.lon_range)
+        self.zoom = calculate_zoom(self.lat_range, self.lon_range)
 
     def _create_figure(self):
         self.fig = go.Figure()
@@ -281,11 +215,13 @@ class BetaMap:
                     {
                         "below": "traces",
                         "sourcetype": "raster",
-                        "source": [(
-                            "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0?SERVICE=WMTS&REQUEST=GetTile"
-                            "&VERSION=1.0.0&LAYER=water&STYLE=default&FORMAT=image/png&TileMatrixSet=EPSG:3857"
-                            "&TileMatrix={z}&TileRow={y}&TileCol={x}"
-                        )],
+                        "source": [
+                            (
+                                "https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0?SERVICE=WMTS&REQUEST=GetTile"
+                                "&VERSION=1.0.0&LAYER=water&STYLE=default&FORMAT=image/png&TileMatrixSet=EPSG:3857"
+                                "&TileMatrix={z}&TileRow={y}&TileCol={x}"
+                            )
+                        ],
                         "sourceattribution": "Kadaster",
                     }
                 ],
@@ -301,13 +237,13 @@ class BetaMap:
             title="Faalkansberekening STPH",
         )
 
-    def _add_lines(self):
-        self.fig = _add_line(self.geoprob_pipe, self.fig, "dijktraject", "black")
-        self.fig = _add_line(self.geoprob_pipe, self.fig, "intredelijn", "blue")
-        self.fig = _add_line(self.geoprob_pipe, self.fig, "binnenteenlijn", "purple")
-        self.fig = _add_line(self.geoprob_pipe, self.fig, "buitenteenlijn", "red")
+    def _add_lines(self) -> None:
+        self.fig = add_line(self.geoprob_pipe, self.fig, "dijktraject", "black")
+        self.fig = add_line(self.geoprob_pipe, self.fig, "intredelijn", "blue")
+        self.fig = add_line(self.geoprob_pipe, self.fig, "binnenteenlijn", "purple")
+        self.fig = add_line(self.geoprob_pipe, self.fig, "buitenteenlijn", "red")
 
-    def _optionally_export(self):
+    def _optionally_export(self) -> None:
         if self.export:
             path = self.geoprob_pipe.visualizations.maps.export_dir
             self.fig.write_html(
