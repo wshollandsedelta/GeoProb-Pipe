@@ -32,4 +32,5 @@ class Maps:
 
     def export_maps(self) -> None:
         BetaMap(self.geoprob_pipe, export=True)
-        ForelandMap(self.geoprob_pipe, export=True)
+        if self.geoprob_pipe.input_data.app_settings.geohydrologisch_model != "wbi":
+            ForelandMap(self.geoprob_pipe, export=True)
