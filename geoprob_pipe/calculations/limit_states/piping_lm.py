@@ -231,15 +231,17 @@ def limit_state_moria(  # TODO: Naam moria vervangen voor iets generieks?
     :param gamma_water:
     :return:
     """
-
+    d_deklaag = pc_piping.calc_d_deklaag(mv_exit=mv_exit, top_zand=top_zand)
+    c=d_deklaag/0.01
     kD_wvp = k_wvp * D_wvp
+    lambda_voorland =  pc_piping.calc_lambda_voorland(kD_wvp=kD_wvp, c_voorland=c)
     L_voorland = pc_piping.calc_lengte_voorland(
         L_intrede=L_intrede, L_but=L_but)
     W_voorland = pc_piping.calc_W_voorland(
         lambda_voorland=lambda_voorland, L_voorland=L_voorland)
     L_kwelweg = pc_piping.calc_L_kwelweg(L_but=L_but, W_voorland=W_voorland)
     h_exit = pc_piping.calc_h_exit(polderpeil=polderpeil, mv_exit=mv_exit)
-    d_deklaag = pc_piping.calc_d_deklaag(mv_exit=mv_exit, top_zand=top_zand)
+    
     phi_exit = (
         phi_exit_gemiddeld + r_exit * (buitenwaterstand
                                        - buitenwaterstand_gemiddeld)
