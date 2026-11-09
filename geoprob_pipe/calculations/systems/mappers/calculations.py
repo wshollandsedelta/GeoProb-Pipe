@@ -22,7 +22,7 @@ CALCULATION_MAPPER = {
         "system_builder": WBISystemBuilder,
         "system_return_parameter_keys": [
             "z_u", "z_h", "z_p", "z_combin", "h_exit", "phi_exit", "dphi_c_u",
-            "i_exit", "dh_c", "dh_red"
+            "i_exit", "dh_c", "dh_red", "L_kwelweg"
         ],
         "limit_state_function": limit_state_wbi,
     },
