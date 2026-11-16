@@ -20,9 +20,9 @@ if TYPE_CHECKING:
     from geoprob_pipe import GeoProbPipe
 
 
-class ForelandMap:
+class LeakageMap:
     def __init__(self, geoprob_pipe: GeoProbPipe, export: bool = False) -> None:
-        """Class voor het maken van de voorlandlengte kaart.
+        """Class voor het maken van de kwelweglengte kaart.
 
         :param geoprob_pipe: Hoofdobject
         :param export: bool voor de export van de html, defaults to False
@@ -235,6 +235,6 @@ class ForelandMap:
     def _optionally_export(self) -> None:
         if self.export:
             self.fig.write_html(
-                os.path.join(self.output_dir, "Voorlandlengtes.html"),
+                os.path.join(self.output_dir, "Kwelweglengtes.html"),
                 include_plotlyjs="cdn",
             )
