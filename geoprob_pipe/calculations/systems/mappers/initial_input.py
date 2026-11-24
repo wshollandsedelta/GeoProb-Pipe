@@ -1,9 +1,15 @@
-from geoprob_pipe.calculations.systems.moria.initial_input import (
-    INITIAL_INPUT as INITIAL_INPUT_MORIA)
 from geoprob_pipe.calculations.systems.model4a.initial_input import (
-    INITIAL_INPUT as INITIAL_INPUT_MODEL4A)
+    INITIAL_INPUT as INITIAL_INPUT_MODEL4A,
+)
+from geoprob_pipe.calculations.systems.moria.initial_input import (
+    INITIAL_INPUT as INITIAL_INPUT_MORIA,
+)
 from geoprob_pipe.calculations.systems.wbi.initial_input import (
-    INITIAL_INPUT as INITIAL_INPUT_WBI)
+    INITIAL_INPUT as INITIAL_INPUT_WBI,
+)
+from geoprob_pipe.calculations.systems.wshd.initial_input import (
+    INITIAL_INPUT as INITIAL_INPUT_WSHD,
+)
 
 # TODO: Dynamisch maken? Forceren dat naamgeving overeenkomt en
 # we dynamisch importeren?
@@ -22,5 +28,9 @@ INITIAL_INPUT_MAPPER = {
     "moria": {
         "label": "MORIA",
         "input": INITIAL_INPUT_MORIA,
+    },
+    "wshd": {
+        "label": "WSHD",
+        "input": INITIAL_INPUT_WSHD,
     },
 }
