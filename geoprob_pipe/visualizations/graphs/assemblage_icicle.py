@@ -27,9 +27,7 @@ class IciclePlot:
         df_vakken = df_vakken.rename(columns={"beta_dsn": "beta",
                                               "pf_dsn(max)": "pf"})
 
-        # Remove vak without utp
-        mask_vakken = df_vakken["pf"] != 0
-        df_vakken = df_vakken[mask_vakken].copy()
+        df_vakken = df_vakken.copy()
 
         df_utp = self.geoprob_pipe.results.df_beta_uittredepunten.copy()
         df_scen = self.geoprob_pipe.results.df_beta_scenarios_final.copy()
