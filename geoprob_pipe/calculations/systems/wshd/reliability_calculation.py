@@ -10,17 +10,21 @@ from geoprob_pipe.calculations.systems.wshd.limit_state_functions import (
 )
 
 
+# TODO: Deze class voegt niets toe aan de base, geen bestaansrecht - VJ
 class WSHDCalculation(SystemCalculation):
-    """ Vooraf gedefinieerde System Reliability Calculation voor piping met het WBI-stijghoogtemodel. """
+    """Vooraf gedefinieerde System Reliability Calculation voor piping met het WBI-stijghoogtemodel."""
 
     def __init__(
-            self,
-            distributions: list[dict],
-            correlations: list[tuple[str, str, float]]| None = None,
-            reliability_settings: dict[str, str| float| int] | None= None
+        self,
+        distributions: list[dict],
+        correlations: list[tuple[str, str, float]] | None = None,
+        reliability_settings: dict[str, str | float | int] | None = None,
     ) -> None:
         super().__init__(
-            distributions=distributions, correlations=correlations, reliability_settings=reliability_settings)
+            distributions=distributions,
+            correlations=correlations,
+            reliability_settings=reliability_settings,
+        )
         self.setup.variables_function = limit_state_wshd
         self.setup.system_limit_states = [calc_Z_u, calc_Z_h, calc_Z_p]
         self.setup.project_limit_state = calc_Z_project

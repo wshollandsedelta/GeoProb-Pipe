@@ -1,4 +1,4 @@
-from geoprob_pipe.calculations.systems.mappers.initial_input import INITIAL_INPUT_MORIA
+from geoprob_pipe.calculations.systems.mappers.initial_input import INITIAL_INPUT_WSHD
 from geoprob_pipe.calculations.systems.validation import (
     BUITENWATERSTAND,
     D70,
@@ -33,7 +33,7 @@ from geoprob_pipe.calculations.systems.validation import (
 from geoprob_pipe.utils.df_validation import ColumnValidation, filters, requirements
 
 PARAMETER = ColumnValidation(column_name="parameter", requirements=[
-        requirements.IsIn(values=[item["name"] for item in INITIAL_INPUT_MORIA])])
+        requirements.IsIn(values=[item["name"] for item in INITIAL_INPUT_WSHD])])
 
 
 BUITENWATERSTAND_GEMIDDELD = ColumnValidation(column_name="mean", requirements=[
@@ -43,7 +43,7 @@ BUITENWATERSTAND_GEMIDDELD = ColumnValidation(column_name="mean", requirements=[
             FILTER_IS_NOT_CDF_CURVE))])
 
 
-WSHD_VALIDATION_REQUIREMENTS = {
+WSHD_VALIDATION_REQUIREMENTS: dict[str, list[ColumnValidation]] = {
     "Parameter invoer": [
         PARAMETER,
         D_WVP, L_BUT, L_INTREDE, BUITENWATERSTAND, BUITENWATERSTAND_GEMIDDELD, D70, D70_M, ETA, G, GAMMA_KORREL,

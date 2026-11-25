@@ -11,7 +11,7 @@ from geoprob_pipe.calculations.systems.wshd.reliability_calculation import (
 # if TYPE_CHECKING:
 #     from geoprob_pipe import GeoProbPipe
 
-
+# TODO: Deze class voegt niets toe aan de base, geen bestaansrecht - VJ
 class WSHDSystemBuilder(BaseSystemBuilder):
     def __init__(self, geopackage_filepath: str, to_run_vakken_ids: list[int]) -> None:
         super().__init__(
