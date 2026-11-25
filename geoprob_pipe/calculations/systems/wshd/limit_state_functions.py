@@ -15,6 +15,7 @@ def limit_state_wshd(
     phi_exit_gemiddeld: float,
     r_exit: float,
     top_zand: float,
+    kv_voorland: float,
     k_wvp: float,
     D_wvp: float,
     d70: float,
@@ -40,7 +41,8 @@ def limit_state_wshd(
 ) -> tuple[float, ...]:
     """Grenstoestandsfuncties volgens het WBI-model met
     grondwaterstroming conform MORIA model. Met aanpassing van meebepalen
-    van lambda_voorland.
+    van lambda_voorland. Omdat er op dit moment geen gevalideerd geohydrologisch
+    model.
 
     :param L_intrede:
     :param L_but:
@@ -74,7 +76,8 @@ def limit_state_wshd(
     :return:
     """
     d_deklaag = pc_piping.calc_d_deklaag(mv_exit=mv_exit, top_zand=top_zand)
-    c_voorland = d_deklaag / 0.01
+    # TODO: maak kv_voorland een parameter
+    c_voorland = d_deklaag / kv_voorland
     kD_wvp = k_wvp * D_wvp
     lambda_voorland = pc_piping.calc_lambda_voorland(
         kD_wvp=kD_wvp, c_voorland=c_voorland
@@ -163,6 +166,7 @@ def calc_Z_u(
     phi_exit_gemiddeld: float,
     top_zand: float,
     r_exit: float,
+    kv_voorland: float,
     k_wvp: float,
     D_wvp: float,
     d70: float,
@@ -199,6 +203,7 @@ def calc_Z_u(
         mv_exit=mv_exit,
         top_zand=top_zand,
         r_exit=r_exit,
+        kv_voorland=kv_voorland,
         k_wvp=k_wvp,
         D_wvp=D_wvp,
         d70=d70,
@@ -239,6 +244,7 @@ def calc_Z_h(
     phi_exit_gemiddeld: float,
     top_zand: float,
     r_exit: float,
+    kv_voorland: float,
     k_wvp: float,
     D_wvp: float,
     d70: float,
@@ -275,6 +281,7 @@ def calc_Z_h(
         mv_exit=mv_exit,
         top_zand=top_zand,
         r_exit=r_exit,
+        kv_voorland=kv_voorland,
         k_wvp=k_wvp,
         D_wvp=D_wvp,
         d70=d70,
@@ -315,6 +322,7 @@ def calc_Z_p(
     phi_exit_gemiddeld: float,
     top_zand: float,
     r_exit: float,
+    kv_voorland: float,
     k_wvp: float,
     D_wvp: float,
     d70: float,
@@ -351,6 +359,7 @@ def calc_Z_p(
         mv_exit=mv_exit,
         top_zand=top_zand,
         r_exit=r_exit,
+        kv_voorland=kv_voorland,
         k_wvp=k_wvp,
         D_wvp=D_wvp,
         d70=d70,
@@ -391,6 +400,7 @@ def calc_Z_project(
     phi_exit_gemiddeld: float,
     top_zand: float,
     r_exit: float,
+    kv_voorland: float,
     k_wvp: float,
     D_wvp: float,
     d70: float,
@@ -429,6 +439,7 @@ def calc_Z_project(
         mv_exit=mv_exit,
         top_zand=top_zand,
         r_exit=r_exit,
+        kv_voorland=kv_voorland,
         k_wvp=k_wvp,
         D_wvp=D_wvp,
         d70=d70,

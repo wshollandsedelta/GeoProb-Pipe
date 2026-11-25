@@ -88,6 +88,16 @@ INITIAL_INPUT = [
         "source": "excel",
     },
     {
+        "name": "kv_voorland",
+        "description": "Doorlatendheid deklaag voorland.",
+        "remark": "",
+        "unit": "m/dag",
+        "distribution_type": DistributionType.log_normal,
+        "mean": 0.02,
+        "variation": 0.35,
+        "source": "excel",
+    },
+    {
         "name": "k_wvp",
         "description": "Doorlatendheid watervoerend pakket.",
         "remark": "",

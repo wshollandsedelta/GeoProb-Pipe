@@ -210,3 +210,9 @@ V = ColumnValidation(column_name="mean", requirements=[
         left=0.0000001, right=0.00001, filters=filters.combine(
             filters.is_in(column="parameter", values=["v"]),
             FILTER_IS_NOT_CDF_CURVE))])
+
+KV_VOORLAND = ColumnValidation(column_name="mean", requirements=[
+    requirements.IsInRange(
+        left=0.0, right=999.9, filters=filters.combine(
+            filters.is_in(column="parameter", values=["kv_voorland"]),
+            FILTER_IS_NOT_CDF_CURVE))])
